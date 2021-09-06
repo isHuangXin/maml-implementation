@@ -29,6 +29,7 @@ def main(args):
         ('flatten', []),
         ('linear', [args.n_way, 64])
     ]
+    print(f"config:\n{config}")
     device = torch.device('cuda:0')
     maml = Meta(args, config).to(device)
     tmp = filter(lambda x: x.requires_grad, maml.parameters())

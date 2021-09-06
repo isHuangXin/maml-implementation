@@ -3,10 +3,6 @@ from PIL import Image
 import os.path
 import numpy as np
 
-import time
-import torch
-import visdom
-
 class OmniglotNShot:
     def __init__(self, root, batchsz, n_way, k_shot, k_query, imgsz):
         """
@@ -150,6 +146,10 @@ class OmniglotNShot:
         return next_batch
 
 if __name__ == '__main__':
+    import time
+    import torch
+    import visdom
+
     viz = visdom.Visdom(env='omniglot_view')
     db = OmniglotNShot('db/omniglot', batchsz=20, n_way=5, k_shot=5, k_query=15, imgsz=64)
     for i in range(1000):

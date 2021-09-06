@@ -24,6 +24,13 @@ class Learner(nn.Module):
                 print(*param[:4])
                 w = nn.Parameter(torch.ones(*param[:4]))
                 # gain = 1 according ro cbfin's implementation
+                """
+                torch.nn.init.kaiming_normal_(tensor, a=0, mode='fan_in', nonlinearity='leaky_relu')
+                此为0均值的正态分布,N~(0, std), 其中std=sqrt(2/1(1+a^2)*fan_in)
+                其中, a为激活函数的负办周的斜率, relu是0
+                mode可选为fan_in 或 fan_out, fan_in是正向传播时，方差一致;fan_out是反向传播时，方差一致
+                nonlinearity- 可选 relu 和 leaky_relu ，默认值为leaky_relu
+                """
                 torch.nn.init.kaiming_normal_(w)
                 self.vars.append(w)
                 # [ch_out]
@@ -61,15 +68,16 @@ class Learner(nn.Module):
                 raise NotImplementedError
 
     def extra_repr(self):
+        print(self.config)
         info = ''
         for name, param in self.config:
             if name is 'conv2d':
-                tmp = 'conv2d:(ch_in:%d, ch_out:%d, k:%d, stride:%d, padding:%d)'\
-                        %(param[1], param[0], param[2], param[3], param[4], param[5],)
+                tmp = 'conv2d:(ch_in:%d, ch_out:%d, k:%d, stride:%dx%d, padding:%d)'\
+                        % (param[1], param[0], param[2], param[3], param[4], param[5],)
                 info += tmp + '\n'
             elif name is 'convt2d':
                 tmp = 'convTranspose2d:(ch_in:%d, ch_out:%d, k:%dx%d, stride:%d, padding:%d)'\
-                    %(param[0], param[1], param[2], param[3], param[4], param[5],)
+                    % (param[0], param[1], param[2], param[3], param[4], param[5],)
                 info += tmp + '\n'
             elif name is 'linear':
                 tmp = 'linear:(in:%d, out:%d)'%(param[1], param[0])
@@ -78,10 +86,10 @@ class Learner(nn.Module):
                 tmp = 'leakyrelu:(slope:%f)'%(param[0])
                 info += tmp + '\n'
             elif name is 'avg_pool2d':
-                tmp = 'avg_pool2d:(k:%d, stride:%d, padding:%d)'%(param[0], param[1], param[2])
+                tmp = 'avg_pool2d:(k:%d, stride:%d, padding:%d)' % (param[0], param[1], param[2])
                 info += tmp + '\n'
             elif name is 'max_pool2d':
-                tmp = 'max_pool2d:(k:%d, stride:%d, padding:%d)'%(param[0], param[1], param[2])
+                tmp = 'max_pool2d:(k:%d, stride:%d, padding:%d)' % (param[0], param[1], param[2])
             elif name in ['flatten', 'tanh', 'relu', 'upsample', 'reshape', 'sigmoid', 'use_logits', 'bn']:
                 tmp = name + ':' + str(tuple(param))
                 info += tmp + '\n'
