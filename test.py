@@ -60,7 +60,7 @@ print("done!")
     2.反卷积可以看成是卷积的逆过程,反卷积为 output' = (input' - 1) * stride + kernel - 2*padding
     3.当stride为偶数时: 
 """
-# 测试用例1:  当stride为偶数时
+# 测试用例1:  当stride为偶数, padding为0时
 X = torch.Tensor([[[[1, 2],
                     [3, 4]]]])
 C = torch.Tensor([[[[5, 6],
@@ -84,3 +84,9 @@ print(f"Y.shape: {Y.shape}")
 print(f"Y: {Y}")
 print("测试用例2 done!")
 
+# 测试relu
+m = nn.ReLU()
+input = torch.randn(2)
+output = m(input)
+print(input)
+print(output)
