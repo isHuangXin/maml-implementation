@@ -90,3 +90,9 @@ input = torch.randn(2)
 output = m(input)
 print(input)
 print(output)
+
+# 测试字符串的分割方法
+url = 'https://github.com/brendenlake/omniglot/raw/master/python/images_background.zip'
+print(f"url.rpartition('/')[2]: {url.rpartition('/')}")
+filename = url.rpartition('/')[2]
+print(f"url.rpartition('/')[2]: {url.rpartition('/')[2]}")

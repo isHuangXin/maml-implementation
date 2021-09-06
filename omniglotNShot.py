@@ -3,6 +3,8 @@ from PIL import Image
 import os.path
 import numpy as np
 
+from omniglot import Omniglot
+
 class OmniglotNShot:
     def __init__(self, root, batchsz, n_way, k_shot, k_query, imgsz):
         """

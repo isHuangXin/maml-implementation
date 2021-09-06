@@ -23,7 +23,7 @@ class Omniglot(data.Dataset):
     def __init__(self, root, transform=None, target_tranform=None, download=False):
         self.root = root
         self.transform = transform
-        self.target_tranform = target_tranform
+        self.target_transform = target_tranform
         if not self._check_exists():
             if download:
                 self.download()
