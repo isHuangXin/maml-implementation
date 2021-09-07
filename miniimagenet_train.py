@@ -39,10 +39,15 @@ def main():
     print(config)
     device = torch.device('cuda:0')
     maml = Meta(args, config).to(device)
-    tmp = filter(lambda x: x.requires_grad, maml.parameters())
+    tmp = filter(lambda x: x.requires_grad, maml.parameters())  # 这是啥意思,为啥有两个参数
     num = sum(map(lambda x: np.prod(x.shape), tmp))
     print(maml)
     print('Total trainable tensors: ', num)
+    # batchsz here means total episode number
+    mini = MiniImagenet('./miniimagenet', mode='train', n_way=args.n_way, k_shot=args.k_spt,
+                        k_query=args.k_qry, batchsz=10000, resize=args.imgsz)
+    mini_test = MiniImagenet('./miniimagenet', mode='test', n_way=args.n_way, k_shot=args.k_spt,
+                             k_quert=args.k_qry, batchsz=100, resize=args.imgsz)
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
