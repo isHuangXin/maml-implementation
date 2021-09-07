@@ -34,13 +34,13 @@ class MiniImagenet(Dataset):
         self.batchsz = batchsz  # batch of set, not batch of imgs
         self.n_way = n_way  # n-way
         self.k_shot = k_shot  # k-shot
-        self.query = k_query  # for evaluation
+        self.k_query = k_query  # for evaluation
         self.setsz = self.n_way * self.k_shot  # num of samples per set
         self.querysz = self.n_way * self.k_query  # number of samples per set for evaluation
         self.resize = resize  # resize to
         self.startidx = startidx  # index labal not from 0, but from startidx
         print('shuffle DB: %s, b:%d, %d-way, %d-shot, %d-query, resize:%d' % (
-                mode,batchsz, n_way, k_shot, k_query, resize))
+                mode, batchsz, n_way, k_shot, k_query, resize))
         # torchvision.transforms是pytorch中的图像预处理包
         # 一般用Compose把多个步骤整合到一起
         if mode == 'train':
@@ -57,12 +57,13 @@ class MiniImagenet(Dataset):
                                                  transforms.Normalize(0.485, 0.456, 0.406),
                                                                      (0.299, 0.224, 0.225)
                                                  ])
-        self.path = os.path.join(root, 'images')  # image path
-        csvdata = self.loadCSV(os.path.join(root, mode + './csv'))  # csv path
+        # self.path = os.path.join(root, 'images')  # image path
+        self.path = root
+        csvdata = self.loadCSV(os.path.join(root + '_label', mode + '.csv'))  # csv path
         self.data = []
         self.img2label = {}
         for i, (k, v) in enumerate(csvdata.items()):
-            self.data.append(v)  #[[img1, img2, ...], [img111, ...]]
+            self.data.append(v)  # [[img1, img2, ...], [img111, ...]]
             self.img2label[k] = i + self.startidx  # {"img_name[:9]":label}
         self.cls_num = len(self.data)
         self.create_batch(self.batchsz)
@@ -94,10 +95,10 @@ class MiniImagenet(Dataset):
         :param batchsz: batch size
         :return:
         """
-        self.support_x_batch = []  #support set batch
+        self.support_x_batch = []  # support set batch
         self.query_x_batch = []  # query set batch
         for b in range(batchsz):  # for each batch
-            # 1.select n_way classer randomly
+            # 1.select n_way classes randomly
             selected_cls = np.random.choice(self.cls_num, self.n_way, False)  # no duplicate
             np.random.shuffle(selected_cls)
             support_x = []
@@ -112,6 +113,7 @@ class MiniImagenet(Dataset):
                     # get all images filename for current Dtrain
                     np.array(self.data[cls])[indexDtrain].tolist()
                 )
+                query_x.append(np.array(self.data[cls])[indexDtest].tolist())
             # shuffle the correponding relation between support set and query set
             random.shuffle(support_x)
             random.shuffle(query_x)
@@ -136,8 +138,7 @@ class MiniImagenet(Dataset):
                              for sublist in self.support_x_batch[index] for item in sublist]
         support_y = np.array(
             # filename:n0153282900000005.jpg, the first 9 characters treated as labe
-            [self.img2label[item[:9]]
-            for sublist in self.support_x_batch[index] for item in sublist]).astype(np.int32)
+            [self.img2label[item[:9]] for sublist in self.support_x_batch[index] for item in sublist]).astype(np.int32)
         flatten_query_x = [os.path.join(self.path, item)
                            for sublist in self.query_x_batch[index] for item in sublist]
         query_y = np.array([self.img2label[item[:9]]
@@ -163,7 +164,7 @@ class MiniImagenet(Dataset):
 
     def __len__(self):
         # as we have built up to batchsz of sets, you can sample some small batch size of sets
-        return self.batchs
+        return self.batchsz
 
 
 if __name__ == '__main__':

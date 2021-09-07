@@ -24,6 +24,7 @@ class Meta(nn.Module):
         self.update_step = args.update_step
         self.update_step_test = args.update_step_test
         self.net = Learner(config, args.imgc, args.imgsz)
+        self.meta_optim = optim.Adam(self.net.parameters(), lr=self.meta_lr)
 
     def clip_grad_by_norm_(self, grad, max_norm):
         """
@@ -82,7 +83,7 @@ class Meta(nn.Module):
                 losses_q[1] += loss_q
                 # [setsz]
                 pred_q = F.softmax(logits_q, dim=1).argmax(dim=1)
-                correct = torch.eq(pred_q, y_qry[i]),sum().item()
+                correct = torch.eq(pred_q, y_qry[i]).sum().item()
                 corrects[1] = corrects[1] + correct
             for k in range(1, self.update_step):
                 # 1.run the i-th task and compute loss for k = 1~k-1
@@ -92,7 +93,7 @@ class Meta(nn.Module):
                 grad = torch.autograd.grad(loss, fast_weights)
                 # 3.theta_pi = theta_pi - train_lr * grad
                 fast_weights = list(map(lambda p: p[1] - self.update_lr * p[0], zip(grad, fast_weights)))
-                logits_q = self.net(x_qry[i], fast_weights, bn_trrining=True)
+                logits_q = self.net(x_qry[i], fast_weights, bn_training=True)
                 # loss_q will be overwritten and just keep the loss_q on last update step
                 loss_q = F.cross_entropy(logits_q, y_qry[i])
                 losses_q[k+1] += loss_q
@@ -103,7 +104,7 @@ class Meta(nn.Module):
                     corrects[k+1] = corrects[k+1] + correct
         # end of all tasks
         # sum over all losses on query set across all tasks
-        loss_q = loss_q[-1] / task_num
+        loss_q = losses_q[-1] / task_num
         # optimize theta parameters
         self.meta_optim.zero_grad()
         loss_q.backward()

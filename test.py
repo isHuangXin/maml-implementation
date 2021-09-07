@@ -96,3 +96,25 @@ url = 'https://github.com/brendenlake/omniglot/raw/master/python/images_backgrou
 print(f"url.rpartition('/')[2]: {url.rpartition('/')}")
 filename = url.rpartition('/')[2]
 print(f"url.rpartition('/')[2]: {url.rpartition('/')[2]}")
+
+# numpy.random. shuffle (x) 顺序打乱测试
+arr = np.arange(10)
+print(f"打乱顺序之前: {arr}")
+np.random.shuffle(arr)
+print(f"顺序打乱之后: {arr}")
+
+# np.unique()测试
+test_arr = [3, 2, 1, 1, 2, 4, 5]
+test_arr_unique = np.unique(test_arr)
+print(test_arr_unique)
+
+# tensor.size()方法测试
+x_spt = torch.ones(4, 5, 3, 84, 84)
+# device = device = torch.device('cuda:3')
+# x_spt = x_spt.to(device)
+print(x_spt.shape)
+print(x_spt.size())
+print(x_spt.size(0))
+print(x_spt.size(1))
+print(x_spt.size(2))
+print(x_spt.shape == x_spt.size())

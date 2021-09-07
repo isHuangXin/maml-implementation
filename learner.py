@@ -35,7 +35,7 @@ class Learner(nn.Module):
                 self.vars.append(w)
                 # [ch_out]
                 self.vars.append(nn.Parameter(torch.zeros(param[0])))
-            elif name is'convt2d':
+            elif name is 'convt2d':
                 # [ch_in, ch_out, kernelsz, kernelsz, stride, padding]
                 w = nn.Parameter(torch.ones(*param))
                 # gain = 1 according to cbfinn's implementation
@@ -97,7 +97,7 @@ class Learner(nn.Module):
                 raise NotImplementedError
         return info
 
-    def forward(self, x, var=None, bn_training=True):
+    def forward(self, x, vars=None, bn_training=True):
         """
         This function can be called by finetunning, however, in finetunning, we dont wish to update
         running_mean/running_var. Thought weights/bias of bn is updates, it has been separated by fast_weights.

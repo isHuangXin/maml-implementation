@@ -44,15 +44,15 @@ def main():
         ('linear', [args.n_way, 32 * 5 * 5])
     ]
     print(config)
-    device = torch.device('cuda:0')
+    device = torch.device('cuda:3')
     maml = Meta(args, config).to(device)
     tmp = filter(lambda x: x.requires_grad, maml.parameters())  # 这是是只训练 requires_grad = True的参数, 为False的则冻结
     # 用循环将可训练的参数输出
-    print("==============  查看可训练参数  ==============")
-    for train_name, train_param in maml.parameters():
-        if train_param.requires_grad:
-            print(train_name)
-    print("==============  查看可训练参数结束  ==============")
+    # print("==============  查看可训练参数  ==============")
+    # for train_name, train_param in maml.parameters():
+    #     if train_param.requires_grad:
+    #         print(train_name)
+    # print("==============  查看可训练参数结束  ==============")
     num = sum(map(lambda x: np.prod(x.shape), tmp))
     print(maml)
     print('Total trainable tensors: ', num)
@@ -60,7 +60,7 @@ def main():
     mini = MiniImagenet('./mini_imagenet', mode='train', n_way=args.n_way, k_shot=args.k_spt,
                         k_query=args.k_qry, batchsz=10000, resize=args.imgsz)
     mini_test = MiniImagenet('./mini_imagenet', mode='test', n_way=args.n_way, k_shot=args.k_spt,
-                             k_quert=args.k_qry, batchsz=100, resize=args.imgsz)
+                             k_query=args.k_qry, batchsz=100, resize=args.imgsz)
     for epoch in range(args.epoch//10000):
         # fetch meta_batchsz num of episode each time
         db = DataLoader(mini, args.task_num, shuffle=True, num_workers=1, pin_memory=True)
