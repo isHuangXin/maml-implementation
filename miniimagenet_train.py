@@ -7,6 +7,13 @@ import random, sys, pickle
 import argparse
 
 from meta import Meta
+from MiniImagenet import MiniImagenet
+
+def mean_confidence_interval(accs, confidence=0.95):
+    n = accs.shape[0]
+    m, se = np.mean(accs), scipy.stats.sem(accs)
+    h = se * scipy.stats._ppf((1 + confidence) / 2, n-1)
+    return m,h
 
 def main():
     torch.manual_seed(222)
@@ -39,15 +46,41 @@ def main():
     print(config)
     device = torch.device('cuda:0')
     maml = Meta(args, config).to(device)
-    tmp = filter(lambda x: x.requires_grad, maml.parameters())  # 这是啥意思,为啥有两个参数
+    tmp = filter(lambda x: x.requires_grad, maml.parameters())  # 这是是只训练 requires_grad = True的参数, 为False的则冻结
+    # 用循环将可训练的参数输出
+    print("==============  查看可训练参数  ==============")
+    for train_name, train_param in maml.parameters():
+        if train_param.requires_grad:
+            print(train_name)
+    print("==============  查看可训练参数结束  ==============")
     num = sum(map(lambda x: np.prod(x.shape), tmp))
     print(maml)
     print('Total trainable tensors: ', num)
     # batchsz here means total episode number
-    mini = MiniImagenet('./miniimagenet', mode='train', n_way=args.n_way, k_shot=args.k_spt,
+    mini = MiniImagenet('./mini_imagenet', mode='train', n_way=args.n_way, k_shot=args.k_spt,
                         k_query=args.k_qry, batchsz=10000, resize=args.imgsz)
-    mini_test = MiniImagenet('./miniimagenet', mode='test', n_way=args.n_way, k_shot=args.k_spt,
+    mini_test = MiniImagenet('./mini_imagenet', mode='test', n_way=args.n_way, k_shot=args.k_spt,
                              k_quert=args.k_qry, batchsz=100, resize=args.imgsz)
+    for epoch in range(args.epoch//10000):
+        # fetch meta_batchsz num of episode each time
+        db = DataLoader(mini, args.task_num, shuffle=True, num_workers=1, pin_memory=True)
+        for step, (x_spt, y_spt, x_qry, y_qry) in enumerate(db):
+            x_spt, y_spt, x_qry, y_qry = x_spt.to(device), y_spt.to(device), x_qry.to(device), y_qry.to(device)
+            accs = maml(x_spt, y_spt, x_qry, y_qry)
+            if step % 30 == 0:
+                print('step:', step, '\ttraining acc:', accs)
+            if step % 500 == 0:  # evalution
+                db_test = DataLoader(mini_test, 1, shuffle=True, num_workers=1, pin_memory=True)
+                accs_all_test = []
+                for x_spt, y_spt, x_qry, y_qry in db_test:
+                    x_spt, y_spt, x_qry, y_qry = x_spt.squeeze(0).to(device), y_spt.squeee(0).to(device), \
+                                                 x_qry.squeeze(0).to(device), y_qry.squeeze(0).to(device)
+                    accs =maml.finetunning(x_spt, y_spt, x_qry, y_qry)
+                    accs_all_test.append(accs)
+                # [b, update_step+1]
+                accs = np.array(accs_all_test).mean(axis=0).astype(np.float16)
+                print('Test acc:', accs)
+
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
