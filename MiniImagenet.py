@@ -47,6 +47,8 @@ class MiniImagenet(Dataset):
             self.transform = transforms.Compose([lambda x: Image.open(x).convert('RGB'),
                                                  transforms.Resize((self.resize, self.resize)),
                                                  transforms.ToTensor(),
+                                                # torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                                  # std=[0.229, 0.224, 0.225])
                                                  transforms.Normalize((0.485, 0.456, 0.406),
                                                                       (0.229, 0.224, 0.225))
                                                  ])
@@ -158,7 +160,7 @@ class MiniImagenet(Dataset):
         print('relative:', support_y_relative, query_y_relative)
         for i, path in enumerate(flatten_support_x):
             support_x[i] = self.transform(path)
-        for i, path in enumerate(flatten_support_x):
+        for i, path in enumerate(flatten_query_x):
             query_x[i] = self.transform(path)
         return support_x, torch.LongTensor(support_y_relative), query_x, torch.LongTensor(query_y_relative)
 

@@ -72,9 +72,10 @@ def main():
             if step % 500 == 0:  # evalution
                 db_test = DataLoader(mini_test, 1, shuffle=True, num_workers=1, pin_memory=True)
                 accs_all_test = []
-                for x_spt, y_spt, x_qry, y_qry in db_test:
-                    x_spt, y_spt, x_qry, y_qry = x_spt.squeeze(0).to(device), y_spt.squeee(0).to(device), \
-                                                 x_qry.squeeze(0).to(device), y_qry.squeeze(0).to(device)
+                for step, (x_spt_test, y_spt_test, x_qry_test, y_qry_test) in enumerate(db_test):
+                    x_spt_test, y_spt_test, x_qry_test, y_qry_test = \
+                        x_spt_test.squeeze(0).to(device), y_spt_test.squeee(0).to(device), \
+                        x_qry_test.squeeze(0).to(device), y_qry_test.squeeze(0).to(device)
                     accs =maml.finetunning(x_spt, y_spt, x_qry, y_qry)
                     accs_all_test.append(accs)
                 # [b, update_step+1]
